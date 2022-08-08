@@ -32,7 +32,7 @@ namespace CosmosBenchmark
             {
                 BenchmarkConfig config = BenchmarkConfig.From(args);
                 await Program.AddAzureInfoToRunSummary();
-                
+
                 ThreadPool.SetMinThreads(config.MinThreadPoolSize, config.MinThreadPoolSize);
 
                 if (config.EnableLatencyPercentiles)
@@ -75,7 +75,7 @@ namespace CosmosBenchmark
                 RunSummary.Location = jObject["compute"]["location"].ToString();
                 Console.WriteLine($"Azure VM Location:{RunSummary.Location}");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("Failed to get Azure VM info:" + e.ToString());
             }
@@ -122,23 +122,19 @@ namespace CosmosBenchmark
                 RunSummary runSummary;
 
                 // V2 SDK client initialization
-                using (Microsoft.Azure.Documents.Client.DocumentClient documentClient = config.CreateDocumentClient(config.Key))
+                Func<IBenchmarkOperation> benchmarkOperationFactory = this.GetBenchmarkFactory(
+                    config,
+                    partitionKeyPath,
+                    cosmosClient);
+
+                if (config.DisableCoreSdkLogging)
                 {
-                    Func<IBenchmarkOperation> benchmarkOperationFactory = this.GetBenchmarkFactory(
-                        config,
-                        partitionKeyPath,
-                        cosmosClient,
-                        documentClient);
-
-                    if (config.DisableCoreSdkLogging)
-                    {
-                        // Do it after client initialization (HACK)
-                        Program.ClearCoreSdkListeners();
-                    }
-
-                    IExecutionStrategy execution = IExecutionStrategy.StartNew(benchmarkOperationFactory);
-                    runSummary = await execution.ExecuteAsync(config, taskCount, opsPerTask,  0.01);
+                    // Do it after client initialization (HACK)
+                    Program.ClearCoreSdkListeners();
                 }
+
+                IExecutionStrategy execution = IExecutionStrategy.StartNew(benchmarkOperationFactory);
+                runSummary = await execution.ExecuteAsync(config, taskCount, opsPerTask, 0.01);
 
                 if (config.CleanupOnFinish)
                 {
@@ -159,8 +155,8 @@ namespace CosmosBenchmark
                 {
                     runSummary.Diagnostics = CosmosDiagnosticsLogger.GetDiagnostics();
                     await this.PublishResults(
-                        config, 
-                        runSummary, 
+                        config,
+                        runSummary,
                         cosmosClient);
                 }
 
@@ -169,8 +165,8 @@ namespace CosmosBenchmark
         }
 
         private async Task PublishResults(
-            BenchmarkConfig config, 
-            RunSummary runSummary, 
+            BenchmarkConfig config,
+            RunSummary runSummary,
             CosmosClient benchmarkClient)
         {
             if (string.IsNullOrEmpty(config.ResultsEndpoint))
@@ -192,8 +188,7 @@ namespace CosmosBenchmark
         private Func<IBenchmarkOperation> GetBenchmarkFactory(
             BenchmarkConfig config,
             string partitionKeyPath,
-            CosmosClient cosmosClient,
-            Microsoft.Azure.Documents.Client.DocumentClient documentClient)
+            CosmosClient cosmosClient)
         {
             string sampleItem = File.ReadAllText(config.ItemTemplateFile);
 
@@ -211,30 +206,15 @@ namespace CosmosBenchmark
             object[] ctorArguments = null;
             Type benchmarkTypeName = res.Single();
 
-            if (benchmarkTypeName.Name.EndsWith("V3BenchmarkOperation"))
-            {
-                ci = benchmarkTypeName.GetConstructor(new Type[] { typeof(CosmosClient), typeof(string), typeof(string), typeof(string), typeof(string) });
-                ctorArguments = new object[]
-                    {
+            ci = benchmarkTypeName.GetConstructor(new Type[] { typeof(CosmosClient), typeof(string), typeof(string), typeof(string), typeof(string) });
+            ctorArguments = new object[]
+                {
                         cosmosClient,
                         config.Database,
                         config.Container,
                         partitionKeyPath,
                         sampleItem
-                    };
-            }
-            else if (benchmarkTypeName.Name.EndsWith("V2BenchmarkOperation"))
-            {
-                ci = benchmarkTypeName.GetConstructor(new Type[] { typeof(Microsoft.Azure.Documents.Client.DocumentClient), typeof(string), typeof(string), typeof(string), typeof(string) });
-                ctorArguments = new object[]
-                    {
-                        documentClient,
-                        config.Database,
-                        config.Container,
-                        partitionKeyPath,
-                        sampleItem
-                    };
-            }
+                };
 
             if (ci == null)
             {
@@ -266,8 +246,8 @@ namespace CosmosBenchmark
             {
                 return await container.ReadContainerAsync();
             }
-            catch(CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-            { 
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
                 // Show user cost of running this test
                 double estimatedCostPerMonth = 0.06 * options.Throughput;
                 double estimatedCostPerHour = estimatedCostPerMonth / (24 * 30);

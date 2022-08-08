@@ -233,31 +233,6 @@ namespace CosmosBenchmark
                         clientOptions);
         }
 
-        internal DocumentClient CreateDocumentClient(string accountKey)
-        {
-            Microsoft.Azure.Documents.ConsistencyLevel? consistencyLevel = null;
-            if (!string.IsNullOrWhiteSpace(this.ConsistencyLevel))
-            {
-                consistencyLevel = (Microsoft.Azure.Documents.ConsistencyLevel)Enum.Parse(typeof(Microsoft.Azure.Documents.ConsistencyLevel), this.ConsistencyLevel, ignoreCase: true);
-            }
-
-            return new DocumentClient(new Uri(this.EndPoint),
-                            accountKey,
-                            new ConnectionPolicy()
-                            {
-                                ConnectionMode = Microsoft.Azure.Documents.Client.ConnectionMode.Direct,
-                                ConnectionProtocol = Protocol.Tcp,
-                                MaxRequestsPerTcpConnection = this.MaxRequestsPerTcpConnection,
-                                MaxTcpConnectionsPerEndpoint = this.MaxTcpConnectionsPerEndpoint,
-                                UserAgentSuffix = this.GetUserAgentPrefix(),
-                                RetryOptions = new RetryOptions()
-                                {
-                                    MaxRetryAttemptsOnThrottledRequests = 0
-                                }
-                            },
-                            desiredConsistencyLevel: consistencyLevel);
-        }
-
         private static void HandleParseError(IEnumerable<Error> errors)
         {
             using (ConsoleColorContext ct = new ConsoleColorContext(ConsoleColor.Red))
