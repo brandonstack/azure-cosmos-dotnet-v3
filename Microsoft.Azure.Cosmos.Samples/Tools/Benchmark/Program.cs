@@ -139,7 +139,7 @@ namespace CosmosBenchmark
                 if (config.CleanupOnFinish)
                 {
                     Console.WriteLine($"Deleting Database {config.Database}");
-                    await database.DeleteStreamAsync();
+                    await container.DeleteContainerStreamAsync();
                 }
 
                 string consistencyLevel = config.ConsistencyLevel;
