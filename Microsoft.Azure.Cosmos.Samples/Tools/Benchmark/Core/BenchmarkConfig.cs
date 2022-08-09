@@ -56,6 +56,9 @@ namespace CosmosBenchmark
         [Option(Required = false, HelpText = "Container partition key path")]
         public string PartitionKeyPath { get; set; } = "/partitionKey";
 
+        [Option(Required = false, HelpText = "Indexing Policy for Container. Available [Full(defult), Patital, None, Eq, DateTime]")]
+        public string IndexingPolicy { get; set; } = "Full";
+
         [Option("pl", Required = false, HelpText = "Degree of parallism")]
         public int DegreeOfParallelism { get; set; } = -1;
 

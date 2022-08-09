@@ -256,7 +256,15 @@ namespace CosmosBenchmark
                 Console.ReadLine();
 
                 string partitionKeyPath = options.PartitionKeyPath;
-                return await database.CreateContainerAsync(options.Container, partitionKeyPath, options.Throughput);
+                ContainerResponse resp =  await database.CreateContainerAsync(options.Container, partitionKeyPath, options.Throughput);
+
+                // how to make sure it's using default indexing policy?
+                if (options.IndexingPolicy != "Full")
+                {
+                    IndexingPolicies.SetIndexingPolicy(resp, options.IndexingPolicy);
+                    return await cosmosClient.GetContainer(options.Database, options.Container).ReplaceContainerAsync(resp.Resource);
+                }
+                return resp;
             }
         }
 
