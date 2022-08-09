@@ -1,4 +1,4 @@
-﻿namespace CosmosBenchmark.Operations.in
+﻿namespace CosmosBenchmark
 {
 using System;
 using System.Collections.Generic;

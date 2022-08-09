@@ -1,4 +1,4 @@
-﻿namespace CosmosBenchmark.Operations.datetime
+﻿namespace CosmosBenchmark
 {
     using System;
     using System.IO;

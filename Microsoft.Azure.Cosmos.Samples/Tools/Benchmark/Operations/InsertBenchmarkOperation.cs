@@ -80,9 +80,9 @@ namespace CosmosBenchmark
         }
     }
 
-    internal class InsertCrossPkBenchmarkOperation : InsertBenchmarkOperation
+    internal class InsertSinglePkBenchmarkOperation : InsertBenchmarkOperation
     {
-        public InsertCrossPkBenchmarkOperation(
+        public InsertSinglePkBenchmarkOperation(
             CosmosClient cosmosClient,
             string dbName,
             string containerName,

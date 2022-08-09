@@ -22,6 +22,7 @@ namespace CosmosBenchmark
 
         protected string nextExecutionItemPartitionKey;
         private string nextExecutionItemId;
+        protected bool IsCrossPartition;
 
         public ReadStreamBenchmarkOperation(
             CosmosClient cosmosClient,
@@ -37,6 +38,7 @@ namespace CosmosBenchmark
             this.partitionKeyPath = partitionKeyPath.Replace("/", "");
 
             this.sampleJObject = JsonHelper.Deserialize<Dictionary<string, object>>(sampleJson);
+            this.IsCrossPartition = true;
         }
 
         public async Task<OperationResult> ExecuteOnceAsync()
@@ -64,9 +66,13 @@ namespace CosmosBenchmark
         public async Task PrepareAsync()
         {
             this.nextExecutionItemId = Guid.NewGuid().ToString();
-            if (string.IsNullOrEmpty(this.nextExecutionItemPartitionKey))
+            if (IsCrossPartition)
             {
                 this.nextExecutionItemPartitionKey = Guid.NewGuid().ToString();
+            }
+            else
+            {
+                this.nextExecutionItemPartitionKey = "fixed";
             }
 
             this.sampleJObject["id"] = this.nextExecutionItemId;
@@ -97,7 +103,7 @@ namespace CosmosBenchmark
             string partitionKeyPath,
             string sampleJson) : base(cosmosClient, dbName, containerName, partitionKeyPath, sampleJson)
         {
-            this.nextExecutionItemPartitionKey = "fixed";
+            this.IsCrossPartition = false;
         }
     }
 }

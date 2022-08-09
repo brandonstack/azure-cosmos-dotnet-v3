@@ -54,7 +54,7 @@ namespace CosmosBenchmark
         public bool CleanupOnFinish { get; set; } = false;
 
         [Option(Required = false, HelpText = "Container partition key path")]
-        public string PartitionKeyPath { get; set; } = "/partitionKey";
+        public string PartitionKeyPath { get; set; } = "/pk";
 
         [Option(Required = false, HelpText = "Indexing Policy for Container. Available [Full(defult), Patital, None, Eq, DateTime]")]
         public string IndexingPolicy { get; set; } = "Full";
