@@ -11,7 +11,7 @@ namespace CosmosBenchmark
     using System.Threading.Tasks;
     using Microsoft.Azure.Cosmos;
 
-    internal class ReadStreamExistsV3BenchmarkOperation : IBenchmarkOperation
+    internal class ReadStreamBenchmarkOperation : IBenchmarkOperation
     {
         private readonly Container container;
         private readonly string partitionKeyPath;
@@ -20,10 +20,10 @@ namespace CosmosBenchmark
         private readonly string databsaeName;
         private readonly string containerName;
 
-        private string nextExecutionItemPartitionKey;
+        protected string nextExecutionItemPartitionKey;
         private string nextExecutionItemId;
 
-        public ReadStreamExistsV3BenchmarkOperation(
+        public ReadStreamBenchmarkOperation(
             CosmosClient cosmosClient,
             string dbName,
             string containerName,
@@ -63,29 +63,41 @@ namespace CosmosBenchmark
 
         public async Task PrepareAsync()
         {
-            if (string.IsNullOrEmpty(this.nextExecutionItemId) ||
-                string.IsNullOrEmpty(this.nextExecutionItemPartitionKey))
+            this.nextExecutionItemId = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(this.nextExecutionItemPartitionKey))
             {
-                this.nextExecutionItemId = Guid.NewGuid().ToString();
                 this.nextExecutionItemPartitionKey = Guid.NewGuid().ToString();
+            }
 
-                this.sampleJObject["id"] = this.nextExecutionItemId;
-                this.sampleJObject[this.partitionKeyPath] = this.nextExecutionItemPartitionKey;
+            this.sampleJObject["id"] = this.nextExecutionItemId;
+            this.sampleJObject[this.partitionKeyPath] = this.nextExecutionItemPartitionKey;
 
-                using (MemoryStream inputStream = JsonHelper.ToStream(this.sampleJObject))
+            using (MemoryStream inputStream = JsonHelper.ToStream(this.sampleJObject))
+            {
+                ResponseMessage itemResponse = await this.container.CreateItemStreamAsync(
+                        inputStream,
+                        new PartitionKey(this.nextExecutionItemPartitionKey));
+
+                System.Buffers.ArrayPool<byte>.Shared.Return(inputStream.GetBuffer());
+
+                if (itemResponse.StatusCode != HttpStatusCode.Created)
                 {
-                    ResponseMessage itemResponse = await this.container.CreateItemStreamAsync(
-                            inputStream,
-                            new PartitionKey(this.nextExecutionItemPartitionKey));
-
-                    System.Buffers.ArrayPool<byte>.Shared.Return(inputStream.GetBuffer());
-
-                    if (itemResponse.StatusCode != HttpStatusCode.Created)
-                    {
-                        throw new Exception($"Create failed with statuscode: {itemResponse.StatusCode}");
-                    }
+                    throw new Exception($"Create failed with statuscode: {itemResponse.StatusCode}");
                 }
             }
+        }
+    }
+
+    internal class ReadStreamSinglePkBenchmarkOpertation : ReadStreamBenchmarkOperation
+    {
+        public ReadStreamSinglePkBenchmarkOpertation(
+            CosmosClient cosmosClient,
+            string dbName,
+            string containerName,
+            string partitionKeyPath,
+            string sampleJson) : base(cosmosClient, dbName, containerName, partitionKeyPath, sampleJson)
+        {
+            this.nextExecutionItemPartitionKey = "fixed";
         }
     }
 }

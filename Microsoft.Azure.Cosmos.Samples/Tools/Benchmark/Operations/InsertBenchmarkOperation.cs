@@ -12,7 +12,7 @@ namespace CosmosBenchmark
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
 
-    internal class InsertV3BenchmarkOperation : IBenchmarkOperation
+    internal class InsertBenchmarkOperation : IBenchmarkOperation
     {
         private readonly Container container;
         private readonly string partitionKeyPath;
@@ -21,7 +21,9 @@ namespace CosmosBenchmark
         private readonly string databaseName;
         private readonly string containerName;
 
-        public InsertV3BenchmarkOperation(
+        protected bool IsCrossPartition;
+
+        public InsertBenchmarkOperation(
             CosmosClient cosmosClient,
             string dbName,
             string containerName,
@@ -35,6 +37,7 @@ namespace CosmosBenchmark
             this.partitionKeyPath = partitionKeyPath.Replace("/", "");
 
             this.sampleJObject = JsonHelper.Deserialize<Dictionary<string, object>>(sampleJson);
+            this.IsCrossPartition = true;
         }
 
         public async Task<OperationResult> ExecuteOnceAsync()
@@ -62,11 +65,31 @@ namespace CosmosBenchmark
 
         public Task PrepareAsync()
         {
-            string newPartitionKey = Guid.NewGuid().ToString();
+            if (this.IsCrossPartition)
+            {
+                string newPartitionKey = Guid.NewGuid().ToString();
+                this.sampleJObject[this.partitionKeyPath] = newPartitionKey;
+            }
+            else
+            {
+                this.sampleJObject[this.partitionKeyPath] = "fixed";
+            }
             this.sampleJObject["id"] = Guid.NewGuid().ToString();
-            this.sampleJObject[this.partitionKeyPath] = newPartitionKey;
 
             return Task.CompletedTask;
+        }
+    }
+
+    internal class InsertCrossPkBenchmarkOperation : InsertBenchmarkOperation
+    {
+        public InsertCrossPkBenchmarkOperation(
+            CosmosClient cosmosClient,
+            string dbName,
+            string containerName,
+            string partitionKeyPath,
+            string sampleJson) : base(cosmosClient, dbName, containerName, partitionKeyPath, sampleJson)
+        {
+            this.IsCrossPartition = false;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace CosmosBenchmark
     using System.Threading.Tasks;
     using Microsoft.Azure.Cosmos;
 
-    internal abstract class QueryTV3BenchmarkOperation : IBenchmarkOperation
+    internal abstract class QueryBenchmarkOperation : IBenchmarkOperation
     {
         protected readonly Container container;
         protected readonly Dictionary<string, object> sampleJObject;
@@ -33,8 +33,10 @@ namespace CosmosBenchmark
 
         protected string executionItemId = null;
         protected string executionPartitionKey = null;
+        protected string executingFieldValue = null;
+        protected const string FieldValuePath = "Val";
 
-        public QueryTV3BenchmarkOperation(
+        public QueryBenchmarkOperation(
             CosmosClient cosmosClient,
             string dbName,
             string containerName,
@@ -258,45 +260,43 @@ namespace CosmosBenchmark
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public virtual async Task PrepareAsync()
-        {
-            if (this.initialized)
-            {
-                return;
-            }
+        public abstract Task PrepareAsync();
+            //if (this.initialized)
+            //{
+            //    return;
+            //}
 
-            for (int itemCount = 0; itemCount < 100; itemCount++)
-            {
-                string objectId = Guid.NewGuid().ToString();
+            //for (int itemCount = 0; itemCount < 100; itemCount++)
+            //{
+            //    string objectId = Guid.NewGuid().ToString();
 
-                // If single partitioned 
-                if (this.IsCrossPartitioned || // Multi Partitioned
-                    (!this.IsCrossPartitioned //Single Partitioned but partitionValue are not generated yet
-                        && this.executionPartitionKey == null))
-                {
-                    this.executionItemId = objectId;
-                    this.executionPartitionKey = Guid.NewGuid().ToString();
-                }
+            //    // If single partitioned 
+            //    if (this.IsCrossPartitioned || // Multi Partitioned
+            //        (!this.IsCrossPartitioned //Single Partitioned but partitionValue are not generated yet
+            //            && this.executionPartitionKey == null))
+            //    {
+            //        this.executionItemId = objectId;
+            //        this.executionPartitionKey = Guid.NewGuid().ToString();
+            //    }
 
-                this.sampleJObject["id"] = objectId;
-                this.sampleJObject[this.partitionKeyPath] = this.executionPartitionKey;
+            //    this.sampleJObject["id"] = objectId;
+            //    this.sampleJObject[this.partitionKeyPath] = this.executionPartitionKey;
 
-                using (MemoryStream inputStream = JsonHelper.ToStream(this.sampleJObject))
-                {
-                    using ResponseMessage itemResponse = await this.container.CreateItemStreamAsync(
-                            inputStream,
-                            new Microsoft.Azure.Cosmos.PartitionKey(this.executionPartitionKey));
+            //    using (MemoryStream inputStream = JsonHelper.ToStream(this.sampleJObject))
+            //    {
+            //        using ResponseMessage itemResponse = await this.container.CreateItemStreamAsync(
+            //                inputStream,
+            //                new Microsoft.Azure.Cosmos.PartitionKey(this.executionPartitionKey));
 
-                    System.Buffers.ArrayPool<byte>.Shared.Return(inputStream.GetBuffer());
+            //        System.Buffers.ArrayPool<byte>.Shared.Return(inputStream.GetBuffer());
 
-                    if (itemResponse.StatusCode != HttpStatusCode.Created)
-                    {
-                        throw new Exception($"Create failed with statuscode: {itemResponse.StatusCode}");
-                    }
-                }
-            }
+            //        if (itemResponse.StatusCode != HttpStatusCode.Created)
+            //        {
+            //            throw new Exception($"Create failed with statuscode: {itemResponse.StatusCode}");
+            //        }
+            //    }
+            //}
 
-            this.initialized = true;
-        }
+            //this.initialized = true;
     }
 }

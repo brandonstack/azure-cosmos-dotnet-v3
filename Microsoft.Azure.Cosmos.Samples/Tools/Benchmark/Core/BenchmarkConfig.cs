@@ -193,7 +193,8 @@ namespace CosmosBenchmark
                 ApplicationName = this.GetUserAgentPrefix(),
                 MaxRetryAttemptsOnRateLimitedRequests = 0,
                 MaxRequestsPerTcpConnection = this.MaxRequestsPerTcpConnection,
-                MaxTcpConnectionsPerEndpoint = this.MaxTcpConnectionsPerEndpoint
+                MaxTcpConnectionsPerEndpoint = this.MaxTcpConnectionsPerEndpoint,
+                AllowBulkExecution = true,
             };
 
             if (this.EnableOpenTelemetry)
