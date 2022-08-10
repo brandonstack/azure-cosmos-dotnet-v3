@@ -37,10 +37,10 @@ echo $BRANCH_NAME
 #Point read operations
 for WORKLOAD_NAME in Insert InsertSinglePk
 do
-    dotnet run -c Release  -- -n 200000 -w Insert --pl $PL --tcp 10 -e $ACCOUNT_ENDPOINT -k $ACCOUNT_KEY --disablecoresdklogging --database testdb --container testcol --partitionkeypath /pk
+    dotnet run -c Release  -- -n 200000 -w Insert --pl $PL --tcp 10 -e $ACCOUNT_ENDPOINT -k $ACCOUNT_KEY --disablecoresdklogging --database testdb --container testcol -t 10000 --partitionkeypath /pk
     echo "Data was prepared, start testing..."
     sleep 10
     echo $WORKLOAD_NAME
-    dotnet run -c Release  -- -n 20000 -w $WORKLOAD_NAME --pl $PL --tcp 10 -e $ACCOUNT_ENDPOINT -k $ACCOUNT_KEY  --enablelatencypercentiles --disablecoresdklogging --publishresults --resultspartitionkeyvalue $RESULTS_PK --commitid $COMMIT_ID --commitdate $COMMIT_DATE --committime $COMMIT_TIME  --branchname $BRANCH_NAME --database testdb --container testcol --partitionkeypath /pk --cleanuponfinish
+    dotnet run -c Release  -- -n 20000 -w $WORKLOAD_NAME --pl $PL --tcp 10 -e $ACCOUNT_ENDPOINT -k $ACCOUNT_KEY  --enablelatencypercentiles --disablecoresdklogging --publishresults --resultspartitionkeyvalue $RESULTS_PK --commitid $COMMIT_ID --commitdate $COMMIT_DATE --committime $COMMIT_TIME  --branchname $BRANCH_NAME --database testdb --container testcol -t 10000 --partitionkeypath /pk --cleanuponfinish
     sleep 10 #Wait
 done
