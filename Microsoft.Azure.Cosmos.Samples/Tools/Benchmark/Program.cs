@@ -252,8 +252,8 @@ namespace CosmosBenchmark
                 double estimatedCostPerMonth = 0.06 * options.Throughput;
                 double estimatedCostPerHour = estimatedCostPerMonth / (24 * 30);
                 Console.WriteLine($"The container will cost an estimated ${Math.Round(estimatedCostPerHour, 2)} per hour (${Math.Round(estimatedCostPerMonth, 2)} per month)");
-                Console.WriteLine("Press enter to continue ...");
-                Console.ReadLine();
+                // Console.WriteLine("Press enter to continue ...");
+                // Console.ReadLine();
 
                 string partitionKeyPath = options.PartitionKeyPath;
                 ContainerResponse resp =  await database.CreateContainerAsync(options.Container, partitionKeyPath, options.Throughput);
