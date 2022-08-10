@@ -17,14 +17,14 @@ namespace CosmosBenchmark
         public double Rups()
         {
             return Math.Round(
-                    Math.Min(this.ruCharges / this.elapsedMs * Summary.MsPerSecond, this.ruCharges),
+                    Math.Max(this.ruCharges / this.elapsedMs * Summary.MsPerSecond, this.ruCharges),
                     2);
         }
 
         public double Rps()
         {
             return Math.Round(
-                    Math.Min(this.successfulOpsCount / this.elapsedMs * Summary.MsPerSecond, this.successfulOpsCount),
+                    Math.Max(this.successfulOpsCount / this.elapsedMs * Summary.MsPerSecond, this.successfulOpsCount),
                     2);
         }
 
