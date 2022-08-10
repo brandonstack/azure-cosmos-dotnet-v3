@@ -66,14 +66,7 @@ namespace CosmosBenchmark
         public async Task PrepareAsync()
         {
             this.nextExecutionItemId = Guid.NewGuid().ToString();
-            if (IsCrossPartition)
-            {
-                this.nextExecutionItemPartitionKey = Guid.NewGuid().ToString();
-            }
-            else
-            {
-                this.nextExecutionItemPartitionKey = "fixed";
-            }
+            this.nextExecutionItemPartitionKey = this.IsCrossPartition ? Guid.NewGuid().ToString() : "fixed";
 
             this.sampleJObject["id"] = this.nextExecutionItemId;
             this.sampleJObject[this.partitionKeyPath] = this.nextExecutionItemPartitionKey;
